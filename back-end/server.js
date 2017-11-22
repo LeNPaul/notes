@@ -1,7 +1,11 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var mongo = require('mongodb').MongoClient;
+var mongoose = require('mongoose');
+
+var Message = mongoose.model('Message',{
+  msg: String
+});
 
 app.use(bodyParser.json());
 
@@ -11,17 +15,26 @@ app.use(function(req,res,next){
   next();
 })
 
+app.get('/api/message', GetMessages);
+
 app.post('/api/message', function(req,res){
   console.log(req.body);
+  var message = new Message(req.body);
+
+  message.save();
+
   res.status(200);
 })
 
-mongo.connect("mongodb://localhost:27017/test", function(err,db){
+function GetMessages(req,res){
+  Message.find({}).exec(function(err,result){
+    res.send(result);
+  })
+}
+
+mongoose.connect("mongodb://localhost:27017/test", function(err,db){
   if(!err){
     console.log("we are conected to mongo");
-
-    db.collection('messages').insertOne({'msg':'test'});
-
   }
 })
 
